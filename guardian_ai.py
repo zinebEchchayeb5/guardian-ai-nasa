@@ -12,65 +12,65 @@ import io
 import base64
 
 # -----------------------------------------------------------------------------
-# 0. CONFIGURATION ET CONSTANTES
+# 0. CONFIGURATION AND CONSTANTS
 # -----------------------------------------------------------------------------
 
-# Configuration de la page Streamlit
+# Streamlit page configuration
 st.set_page_config(
-    page_title="Guardian AI: Prévisions AQI Avancées",
+    page_title="Guardian AI: Advanced AQI Forecasts",
     page_icon="🌍",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Constantes des API (Remplacer par vos clés si nécessaire pour une utilisation réelle)
+# API Constants (Replace with your keys for real usage)
 OPENAQ_API_URL = "https://api.openaq.org/v2/latest"
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast" 
 
-# Zones de Los Angeles (Simulation)
+# Los Angeles Zones (Simulation)
 LA_ZONES = {
-    "Downtown": {"lat": 34.0522, "lon": -118.2437, "weight": 1.2, "name": "Centre-ville (DTLA)"},
+    "Downtown": {"lat": 34.0522, "lon": -118.2437, "weight": 1.2, "name": "Downtown (DTLA)"},
     "Santa Monica": {"lat": 34.0195, "lon": -118.4912, "weight": 0.8, "name": "Santa Monica"},
-    "San Fernando Valley": {"lat": 34.2798, "lon": -118.6706, "weight": 1.1, "name": "Vallée de San Fernando"},
+    "San Fernando Valley": {"lat": 34.2798, "lon": -118.6706, "weight": 1.1, "name": "San Fernando Valley"},
     "Long Beach": {"lat": 33.7701, "lon": -118.1937, "weight": 1.0, "name": "Long Beach"},
 }
 
 # -----------------------------------------------------------------------------
-# 1. FONCTIONS UTILITAIRES
+# 1. UTILITY FUNCTIONS
 # -----------------------------------------------------------------------------
 
 def get_aqi_status_and_color(pm25_value):
-    """Détermine le statut AQI et la couleur à partir de la valeur PM2.5."""
+    """Determine AQI status and color from PM2.5 value."""
     try:
         pm25_float = float(pm25_value)
     except (ValueError, TypeError):
-        return "Données indisponibles", "gray", "❓"
+        return "Data unavailable", "gray", "❓"
     
     if pm25_float <= 12.0:
-        return "Bonne", "green", "👍"
+        return "Good", "green", "👍"
     elif pm25_float <= 35.4:
-        return "Modérée", "yellow", "👌"
+        return "Moderate", "yellow", "👌"
     elif pm25_float <= 55.4:
-        return "Médiocre (Sensible)", "orange", "⚠️"
+        return "Poor (Sensitive)", "orange", "⚠️"
     elif pm25_float <= 150.4:
-        return "Mauvaise", "red", "🚨"
+        return "Unhealthy", "red", "🚨"
     elif pm25_float <= 250.4:
-        return "Très Mauvaise", "purple", "❌"
+        return "Very Unhealthy", "purple", "❌"
     else:
-        return "Dangereuse", "maroon", "💀"
+        return "Hazardous", "maroon", "💀"
 
 def get_risk_description(risk_level):
-    """Fournit une description et des conseils basés sur le niveau de risque."""
+    """Provides description and advice based on risk level."""
     descriptions = {
-        'low': ("Faible", "Peu de risques. Profitez de l'extérieur. Surveillez les jours de vent fort/incendies."),
-        'medium': ("Moyen", "Risque accru. Les personnes sensibles (asthme, allergies) devraient limiter les efforts intenses les jours 'Médiocres'."),
-        'high': ("Élevé", "Sensibilité forte. Évitez toute activité extérieure lorsque l'air est 'Médiocre' ou pire. Portez un masque N95 si nécessaire."),
-        'critical': ("Critique", "Problèmes respiratoires graves. Restez à l'intérieur, utilisez un purificateur d'air et consultez un médecin en cas de symptômes."),
+        'low': ("Low", "Low risk. Enjoy outdoor activities. Monitor on high wind/fire days."),
+        'medium': ("Medium", "Increased risk. Sensitive individuals (asthma, allergies) should limit intense exercise on 'Poor' days."),
+        'high': ("High", "High sensitivity. Avoid all outdoor activities when air is 'Poor' or worse. Wear N95 mask if necessary."),
+        'critical': ("Critical", "Serious respiratory issues. Stay indoors, use air purifier and consult doctor if symptoms occur."),
     }
     return descriptions.get(risk_level, descriptions['medium'])
 
 def get_color_hex(color_name):
-    """Convertit les noms de couleurs en codes hexadécimaux pour Plotly/Streamlit."""
+    """Convert color names to hex codes for Plotly/Streamlit."""
     colors = {
         "green": "#1ABC9C", "yellow": "#F7DC6F", "orange": "#E67E22",
         "red": "#E74C3C", "purple": "#8E44AD", "maroon": "#7B241C",
@@ -79,14 +79,14 @@ def get_color_hex(color_name):
     return colors.get(color_name, "#2C3E50")
 
 # -----------------------------------------------------------------------------
-# 2. GESTION DES DONNÉES ET API (Simulation)
+# 2. DATA MANAGEMENT AND API (Simulation)
 # -----------------------------------------------------------------------------
 
 class DataFetcher:
-    """Simule la récupération des données en temps réel et météo."""
+    """Simulates real-time data and weather retrieval."""
     
     def fetch_multi_source_aqi(self, lat, lon):
-        """Simule la récupération des données AQI (OpenAQ/Capteurs Locaux)."""
+        """Simulates AQI data retrieval (OpenAQ/Local Sensors)."""
         if random.random() < 0.7:
             pm25 = random.uniform(5, 50) 
             return [{'source': 'OpenAQ', 'pm25': pm25, 'lat': lat, 'lon': lon}]
@@ -94,7 +94,7 @@ class DataFetcher:
             return None
 
     def fetch_advanced_weather(self, lat, lon):
-        """Simule la récupération des données météorologiques avancées."""
+        """Simulates advanced weather data retrieval."""
         weather = {
             'temperature': random.uniform(15, 30),
             'humidity': random.uniform(40, 70),
@@ -105,11 +105,11 @@ class DataFetcher:
         return weather
 
 # -----------------------------------------------------------------------------
-# 3. MOTEUR DE PRÉDICTION AQI
+# 3. AQI PREDICTION ENGINE
 # -----------------------------------------------------------------------------
 
 class AdvancedAQIPredictor:
-    """Modèle de prédiction AQI simulé avec facteurs avancés."""
+    """Simulated AQI prediction model with advanced factors."""
     
     def __init__(self):
         self.pm25_weight = 0.6
@@ -166,15 +166,15 @@ class AdvancedAQIPredictor:
             return predicted_pm25
 
         except Exception as e:
-            st.error(f"Erreur dans la prédiction : {e}")
+            st.error(f"Prediction error: {e}")
             return current_data.get('pm25', 20)
 
 # -----------------------------------------------------------------------------
-# 4. SYSTÈMES D'ALERTE ET CHATBOT
+# 4. ALERT SYSTEMS AND CHATBOT
 # -----------------------------------------------------------------------------
 
 class SmartAlertSystem:
-    """Génère des recommandations basées sur l'AQI et le profil utilisateur."""
+    """Generates recommendations based on AQI and user profile."""
     
     def __init__(self, user_profile, predicted_aqi):
         self.profile = user_profile
@@ -185,25 +185,25 @@ class SmartAlertSystem:
     def generate_recommendations(self):
         recos = []
         
-        recos.append(f"Statut prévu: **{self.aqi_status}** ({self.predicted_aqi:.1f} µg/m³ PM2.5).")
+        recos.append(f"Predicted status: **{self.aqi_status}** ({self.predicted_aqi:.1f} µg/m³ PM2.5).")
         
         if self.risk_level in ['high', 'critical'] and self.predicted_aqi > 35:
-            recos.append("😷 **Sensibilité Forte/Critique**: Évitez toute activité physique extérieure intense. Envisagez de porter un masque N95.")
+            recos.append("😷 **High/Critical Sensitivity**: Avoid all intense outdoor physical activity. Consider wearing N95 mask.")
         elif self.risk_level == 'medium' and self.predicted_aqi > 55:
-            recos.append("⚠️ **Sensibilité Moyenne**: Réduisez les efforts prolongés à l'extérieur. Si vous ressentez des symptômes, rentrez immédiatement.")
+            recos.append("⚠️ **Medium Sensitivity**: Reduce prolonged outdoor efforts. If you experience symptoms, go inside immediately.")
         else:
-            recos.append("✅ **Conseil Général**: L'air est acceptable pour la plupart des activités. Profitez-en!")
+            recos.append("✅ **General Advice**: Air is acceptable for most activities. Enjoy!")
 
         if "outdoor_sport" in self.profile['activities'] and self.predicted_aqi > 55:
-            recos.append("🏃 **Sport**: Reportez la course à pied ou le vélo en extérieur. Préférez une salle de sport ou un entraînement léger à l'intérieur.")
+            recos.append("🏃 **Sports**: Postpone outdoor running or cycling. Prefer gym or light indoor training.")
         
         if "walk" in self.profile['activities'] and self.predicted_aqi > 55:
-            recos.append("🚶 **Déplacement**: Limitez les longues marches. Utilisez les transports en commun ou le vélo électrique/voiture si possible.")
+            recos.append("🚶 **Commuting**: Limit long walks. Use public transport or electric bike/car if possible.")
             
         return recos
 
 # -----------------------------------------------------------------------------
-# 5. COMPOSANTS D'AFFICHAGE
+# 5. DISPLAY COMPONENTS
 # -----------------------------------------------------------------------------
 
 def display_zone_card(zone_data, predictor):
@@ -234,13 +234,13 @@ def display_zone_card(zone_data, predictor):
                 <span style='font-size: 30px;'>{icon}</span>
             </div>
             <p style='margin-top: 5px; font-size: 1.1em;'>
-                **PM2.5 Actuel:** <span style='color: {color_hex}; font-weight: bold;'>{pm25_value:.1f} µg/m³</span> ({status})
+                **Current PM2.5:** <span style='color: {color_hex}; font-weight: bold;'>{pm25_value:.1f} µg/m³</span> ({status})
             </p>
             <p style='margin: 0; font-size: 0.9em; color: #555;'>
-                **Source des données:** {zone_data.get('source', 'Inconnue')}
+                **Data source:** {zone_data.get('source', 'Unknown')}
             </p>
             <div style='margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px;'>
-                 <p style='margin: 0; font-size: 0.9em; font-weight: bold;'>Prévision (H+12):</p>
+                 <p style='margin: 0; font-size: 0.9em; font-weight: bold;'>Forecast (H+12):</p>
                  <p style='margin: 0; font-size: 1.0em;'>{forecast_pm25_12h:.1f} µg/m³ ({forecast_status_12h})</p>
             </div>
         </div>
@@ -259,13 +259,13 @@ def display_map_view(data_df):
                             hover_name="Zone",
                             hover_data={"PM2.5": ':.1f', "Status": True, "Source": True, "Latitude": False, "Longitude": False},
                             color_discrete_map={
-                                "Bonne": get_color_hex("green"),
-                                "Modérée": get_color_hex("yellow"),
-                                "Médiocre (Sensible)": get_color_hex("orange"),
-                                "Mauvaise": get_color_hex("red"),
-                                "Très Mauvaise": get_color_hex("purple"),
-                                "Dangereuse": get_color_hex("maroon"),
-                                "Données indisponibles": get_color_hex("gray")
+                                "Good": get_color_hex("green"),
+                                "Moderate": get_color_hex("yellow"),
+                                "Poor (Sensitive)": get_color_hex("orange"),
+                                "Unhealthy": get_color_hex("red"),
+                                "Very Unhealthy": get_color_hex("purple"),
+                                "Hazardous": get_color_hex("maroon"),
+                                "Data unavailable": get_color_hex("gray")
                             },
                             zoom=9, 
                             height=600)
@@ -287,9 +287,9 @@ def display_historic_and_forecast(zone_name, current_pm25, weather_data, predict
             reference_dt=reference_dt
         )
         forecast_points.append({
-            'Heure': reference_dt + timedelta(hours=h),
+            'Hour': reference_dt + timedelta(hours=h),
             'PM2.5': predicted_pm25,
-            'Type': 'Prévision',
+            'Type': 'Forecast',
             'Lower': lower,
             'Upper': upper
         })
@@ -302,17 +302,17 @@ def display_historic_and_forecast(zone_name, current_pm25, weather_data, predict
         simulated_pm25 = max(5, min(150, simulated_pm25))
         
         historic_points.append({
-            'Heure': historic_dt,
+            'Hour': historic_dt,
             'PM2.5': simulated_pm25,
-            'Type': 'Historique',
+            'Type': 'Historical',
             'Lower': simulated_pm25,
             'Upper': simulated_pm25
         })
 
     current_point = [{
-        'Heure': reference_dt,
+        'Hour': reference_dt,
         'PM2.5': current_pm25,
-        'Type': 'Actuel',
+        'Type': 'Current',
         'Lower': current_pm25,
         'Upper': current_pm25
     }]
@@ -320,21 +320,21 @@ def display_historic_and_forecast(zone_name, current_pm25, weather_data, predict
     data_df = pd.DataFrame(historic_points + current_point + forecast_points)
 
     fig = px.line(data_df, 
-                  x='Heure', 
+                  x='Hour', 
                   y='PM2.5', 
                   color='Type', 
-                  title=f"Historique (Simulé) et Prévisions PM2.5 pour {zone_name}",
-                  labels={'PM2.5': 'Concentration PM2.5 (µg/m³)', 'Heure': 'Date et Heure'},
-                  color_discrete_map={'Historique': '#2980B9', 'Actuel': '#F39C12', 'Prévision': '#E74C3C'})
+                  title=f"Historical (Simulated) and PM2.5 Forecast for {zone_name}",
+                  labels={'PM2.5': 'PM2.5 Concentration (µg/m³)', 'Hour': 'Date and Time'},
+                  color_discrete_map={'Historical': '#2980B9', 'Current': '#F39C12', 'Forecast': '#E74C3C'})
     
-    fig.add_scatter(x=data_df[data_df['Type'] == 'Prévision']['Heure'], 
-                    y=data_df[data_df['Type'] == 'Prévision']['Upper'], 
+    fig.add_scatter(x=data_df[data_df['Type'] == 'Forecast']['Hour'], 
+                    y=data_df[data_df['Type'] == 'Forecast']['Upper'], 
                     mode='lines', 
                     name='Confidence Interval', 
                     line=dict(width=0),
                     showlegend=False)
-    fig.add_scatter(x=data_df[data_df['Type'] == 'Prévision']['Heure'], 
-                    y=data_df[data_df['Type'] == 'Prévision']['Lower'], 
+    fig.add_scatter(x=data_df[data_df['Type'] == 'Forecast']['Hour'], 
+                    y=data_df[data_df['Type'] == 'Forecast']['Lower'], 
                     mode='lines', 
                     name='Confidence Interval', 
                     line=dict(width=0),
@@ -342,22 +342,22 @@ def display_historic_and_forecast(zone_name, current_pm25, weather_data, predict
                     fillcolor='rgba(231, 76, 60, 0.1)',
                     showlegend=False)
                     
-    for limit, label, color in [(35.4, 'Médiocre', get_color_hex("orange")), (55.4, 'Mauvaise', get_color_hex("red"))]:
+    for limit, label, color in [(35.4, 'Poor', get_color_hex("orange")), (55.4, 'Unhealthy', get_color_hex("red"))]:
         fig.add_hline(y=limit, line_dash="dash", line_color=color, annotation_text=label, 
                       annotation_position="top right", annotation_font_color=color)
 
-    fig.update_layout(xaxis_title="Heure", yaxis_title="PM2.5 (µg/m³)", hovermode="x unified")
+    fig.update_layout(xaxis_title="Hour", yaxis_title="PM2.5 (µg/m³)", hovermode="x unified")
     st.plotly_chart(fig, use_container_width=True)
 
 # -----------------------------------------------------------------------------
-# 6. FONCTIONS POUR LES ONGLETS
+# 6. TAB FUNCTIONS
 # -----------------------------------------------------------------------------
 
 def tab_dashboard(fetcher, predictor, all_zone_data, df_map):
-    """Onglet 1: Tableau de bord avec vue d'ensemble"""
-    st.header("🟢 Tableau de Bord - Vue d'Ensemble")
+    """Tab 1: Dashboard with overview"""
+    st.header("🟢 Dashboard - Overview")
     
-    # Métriques principales
+    # Main metrics
     current_pm25_values = [zone['pm25'] for zone in all_zone_data]
     avg_pm25 = np.mean(current_pm25_values)
     max_pm25 = max(current_pm25_values)
@@ -365,28 +365,28 @@ def tab_dashboard(fetcher, predictor, all_zone_data, df_map):
     
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("AQI Moyen", f"{avg_pm25:.1f} µg/m³", delta=f"{status}")
+        st.metric("Average AQI", f"{avg_pm25:.1f} µg/m³", delta=f"{status}")
     with col2:
-        st.metric("Zone la plus polluée", f"{max_pm25:.1f} µg/m³")
+        st.metric("Most polluted zone", f"{max_pm25:.1f} µg/m³")
     with col3:
-        st.metric("Zones surveillées", len(LA_ZONES))
+        st.metric("Monitored zones", len(LA_ZONES))
     with col4:
-        st.metric("Statut Global", status, delta="Stable" if avg_pm25 < 35 else "Dégradé")
+        st.metric("Global Status", status, delta="Stable" if avg_pm25 < 35 else "Degraded")
     
-    # Carte et résumé
+    # Map and summary
     col1, col2 = st.columns([7, 3])
     
     with col1:
         display_map_view(df_map)
         
     with col2:
-        st.subheader("Résumé par Zone")
+        st.subheader("Zone Summary")
         for zone_data in all_zone_data:
             display_zone_card(zone_data, predictor)
     
-    # Graphique des dernières 24h
-    st.subheader("Évolution AQI - 24 dernières heures")
-    selected_zone_name = st.selectbox("Sélectionnez la Zone", [d['zone'] for d in all_zone_data])
+    # Last 24h chart
+    st.subheader("AQI Evolution - Last 24 hours")
+    selected_zone_name = st.selectbox("Select Zone", [d['zone'] for d in all_zone_data])
     selected_zone_data = next(d for d in all_zone_data if d['zone'] == selected_zone_name)
     
     display_historic_and_forecast(
@@ -397,30 +397,30 @@ def tab_dashboard(fetcher, predictor, all_zone_data, df_map):
         st.session_state.get('analysis_datetime', datetime.now())
     )
     
-    # Bouton d'actualisation
-    if st.button("🔄 Actualiser les données"):
+    # Refresh button
+    if st.button("🔄 Refresh data"):
         st.rerun()
 
 def tab_historique(all_zone_data, predictor):
-    """Onglet 2: Analyse des tendances historiques"""
-    st.header("🔵 Historique et Tendances")
+    """Tab 2: Historical trend analysis"""
+    st.header("🔵 History and Trends")
     
-    # Sélecteurs de période et zone
+    # Period and zone selectors
     col1, col2, col3 = st.columns(3)
     with col1:
-        periode = st.selectbox("Période d'analyse", ["7 jours", "30 jours", "3 mois"])
+        period = st.selectbox("Analysis period", ["7 days", "30 days", "3 months"])
     with col2:
         zone_hist = st.selectbox("Zone", [d['zone'] for d in all_zone_data])
     with col3:
-        aggregation = st.selectbox("Agrégation", ["Par heure", "Par jour", "Par semaine"])
+        aggregation = st.selectbox("Aggregation", ["Hourly", "Daily", "Weekly"])
     
-    # Génération de données historiques simulées
+    # Simulated historical data generation
     selected_zone_data = next(d for d in all_zone_data if d['zone'] == zone_hist)
     end_date = st.session_state.get('analysis_datetime', datetime.now())
     
-    if periode == "7 jours":
+    if period == "7 days":
         days = 7
-    elif periode == "30 jours":
+    elif period == "30 days":
         days = 30
     else:
         days = 90
@@ -429,10 +429,10 @@ def tab_historique(all_zone_data, predictor):
     historical_data = []
     
     for date in dates:
-        # Simulation de variation saisonnière et journalière
+        # Seasonal and daily variation simulation
         base_pm25 = selected_zone_data['pm25']
-        seasonal_factor = 1 + 0.1 * np.sin((date.month - 1) * np.pi / 6)  # Variation saisonnière
-        daily_variation = random.uniform(0.8, 1.2)  # Variation quotidienne
+        seasonal_factor = 1 + 0.1 * np.sin((date.month - 1) * np.pi / 6)  # Seasonal variation
+        daily_variation = random.uniform(0.8, 1.2)  # Daily variation
         
         pm25_value = base_pm25 * seasonal_factor * daily_variation
         pm25_value = max(5, min(150, pm25_value))
@@ -445,55 +445,55 @@ def tab_historique(all_zone_data, predictor):
     
     df_hist = pd.DataFrame(historical_data)
     
-    # Graphique historique
+    # Historical chart
     fig = px.line(df_hist, x='Date', y='PM2.5', 
-                  title=f"Historique AQI - {zone_hist} ({periode})",
-                  labels={'PM2.5': 'Concentration PM2.5 (µg/m³)', 'Date': 'Date'})
+                  title=f"AQI History - {zone_hist} ({period})",
+                  labels={'PM2.5': 'PM2.5 Concentration (µg/m³)', 'Date': 'Date'})
     
-    # Ajout des lignes de seuils
-    for limit, label, color in [(35.4, 'Médiocre', get_color_hex("orange")), 
-                               (55.4, 'Mauvaise', get_color_hex("red"))]:
+    # Threshold lines
+    for limit, label, color in [(35.4, 'Poor', get_color_hex("orange")), 
+                               (55.4, 'Unhealthy', get_color_hex("red"))]:
         fig.add_hline(y=limit, line_dash="dash", line_color=color, 
                      annotation_text=label, annotation_position="top right")
     
     st.plotly_chart(fig, use_container_width=True)
     
-    # Statistiques
+    # Statistics
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("Moyenne", f"{df_hist['PM2.5'].mean():.1f} µg/m³")
+        st.metric("Average", f"{df_hist['PM2.5'].mean():.1f} µg/m³")
     with col2:
         st.metric("Maximum", f"{df_hist['PM2.5'].max():.1f} µg/m³")
     with col3:
         st.metric("Minimum", f"{df_hist['PM2.5'].min():.1f} µg/m³")
     with col4:
-        tendance = "Stable" if abs(df_hist['PM2.5'].pct_change().mean()) < 0.1 else "À la hausse" if df_hist['PM2.5'].pct_change().mean() > 0 else "À la baisse"
-        st.metric("Tendance", tendance)
+        trend = "Stable" if abs(df_hist['PM2.5'].pct_change().mean()) < 0.1 else "Rising" if df_hist['PM2.5'].pct_change().mean() > 0 else "Declining"
+        st.metric("Trend", trend)
     
-    # Téléchargement des données
+    # Data download
     csv = df_hist.to_csv(index=False)
     st.download_button(
-        label="📥 Télécharger les données historiques (CSV)",
+        label="📥 Download historical data (CSV)",
         data=csv,
-        file_name=f"historique_aqi_{zone_hist}_{datetime.now().strftime('%Y%m%d')}.csv",
+        file_name=f"aqi_history_{zone_hist}_{datetime.now().strftime('%Y%m%d')}.csv",
         mime="text/csv"
     )
 
 def tab_previsions(all_zone_data, predictor):
-    """Onglet 3: Prévisions futures"""
-    st.header("🟣 Prévisions AQI")
+    """Tab 3: Future forecasts"""
+    st.header("🟣 AQI Forecasts")
     
-    # Sélecteur de zone
-    zone_prev = st.selectbox("Zone pour prévisions", [d['zone'] for d in all_zone_data])
+    # Zone selector
+    zone_prev = st.selectbox("Zone for forecasts", [d['zone'] for d in all_zone_data])
     selected_zone_data = next(d for d in all_zone_data if d['zone'] == zone_prev)
     
-    # Prévisions détaillées
+    # Detailed forecasts
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        horizon = st.slider("Horizon de prévision (heures)", 1, 72, 24)
+        horizon = st.slider("Forecast horizon (hours)", 1, 72, 24)
         
-        # Génération des prévisions
+        # Forecast generation
         forecast_data = []
         for h in range(1, horizon + 1):
             predicted_pm25 = predictor.predict_advanced(
@@ -506,40 +506,40 @@ def tab_previsions(all_zone_data, predictor):
             
             forecast_time = st.session_state.get('analysis_datetime', datetime.now()) + timedelta(hours=h)
             forecast_data.append({
-                'Heure': forecast_time,
+                'Hour': forecast_time,
                 'PM2.5': predicted_pm25,
-                'Statut': status,
-                'Couleur': color,
-                'Icone': icon
+                'Status': status,
+                'Color': color,
+                'Icon': icon
             })
         
         df_forecast = pd.DataFrame(forecast_data)
         
-        # Graphique de prévision
-        fig = px.line(df_forecast, x='Heure', y='PM2.5',
-                      title=f"Prévisions AQI - {zone_prev}",
-                      labels={'PM2.5': 'Concentration PM2.5 (µg/m³)', 'Heure': 'Date et Heure'})
+        # Forecast chart
+        fig = px.line(df_forecast, x='Hour', y='PM2.5',
+                      title=f"AQI Forecasts - {zone_prev}",
+                      labels={'PM2.5': 'PM2.5 Concentration (µg/m³)', 'Hour': 'Date and Time'})
         
-        # Ajout des zones colorées selon le statut
+        # Color zones by status
         for i in range(len(df_forecast)-1):
-            status = df_forecast.iloc[i]['Statut']
-            color = get_color_hex(df_forecast.iloc[i]['Couleur'])
-            fig.add_vrect(x0=df_forecast.iloc[i]['Heure'], 
-                         x1=df_forecast.iloc[i+1]['Heure'],
+            status = df_forecast.iloc[i]['Status']
+            color = get_color_hex(df_forecast.iloc[i]['Color'])
+            fig.add_vrect(x0=df_forecast.iloc[i]['Hour'], 
+                         x1=df_forecast.iloc[i+1]['Hour'],
                          fillcolor=color, opacity=0.2, line_width=0)
         
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
-        st.subheader("📊 Indicateurs Météo")
+        st.subheader("📊 Weather Indicators")
         weather = selected_zone_data['weather']
         
-        st.metric("🌡️ Température", f"{weather['temperature']:.1f}°C")
-        st.metric("💧 Humidité", f"{weather['humidity']:.1f}%")
-        st.metric("💨 Vitesse du vent", f"{weather['wind_speed']:.1f} km/h")
-        st.metric("🌧️ Pluie (1h)", f"{weather['rain_1h']:.1f} mm")
+        st.metric("🌡️ Temperature", f"{weather['temperature']:.1f}°C")
+        st.metric("💧 Humidity", f"{weather['humidity']:.1f}%")
+        st.metric("💨 Wind speed", f"{weather['wind_speed']:.1f} km/h")
+        st.metric("🌧️ Rain (1h)", f"{weather['rain_1h']:.1f} mm")
         
-        st.subheader("🚨 Zones à Risque")
+        st.subheader("🚨 Risk Zones")
         risky_zones = []
         for zone in all_zone_data:
             forecast_24h = predictor.predict_advanced(
@@ -548,7 +548,7 @@ def tab_previsions(all_zone_data, predictor):
                 hours_ahead=24,
                 reference_dt=st.session_state.get('analysis_datetime', datetime.now())
             )
-            if forecast_24h > 35.4:  # Seuil "Médiocre"
+            if forecast_24h > 35.4:  # "Poor" threshold
                 risky_zones.append((zone['zone'], forecast_24h))
         
         if risky_zones:
@@ -556,14 +556,14 @@ def tab_previsions(all_zone_data, predictor):
                 status, color, icon = get_aqi_status_and_color(pm25)
                 st.warning(f"{icon} {zone_name}: {pm25:.1f} µg/m³ ({status})")
         else:
-            st.success("✅ Aucune zone à risque élevé prévue")
+            st.success("✅ No high-risk zones forecasted")
         
-        # Simulation "Et si"
-        st.subheader("🔬 Simulation 'Et si'")
-        new_temp = st.slider("Température simulée (°C)", 10, 40, int(weather['temperature']))
-        new_wind = st.slider("Vent simulé (km/h)", 0, 30, int(weather['wind_speed']))
+        # "What if" simulation
+        st.subheader("🔬 'What If' Simulation")
+        new_temp = st.slider("Simulated temperature (°C)", 10, 40, int(weather['temperature']))
+        new_wind = st.slider("Simulated wind (km/h)", 0, 30, int(weather['wind_speed']))
         
-        if st.button("Simuler l'impact"):
+        if st.button("Simulate impact"):
             simulated_weather = weather.copy()
             simulated_weather['temperature'] = new_temp
             simulated_weather['wind_speed'] = new_wind
@@ -580,336 +580,336 @@ def tab_previsions(all_zone_data, predictor):
             )
             
             difference = simulated_24h - original_24h
-            st.info(f"Impact simulé: {difference:+.1f} µg/m³")
+            st.info(f"Simulated impact: {difference:+.1f} µg/m³")
 
 def tab_profil_utilisateur():
-    """Onglet 4: Profil utilisateur"""
-    st.header("🟠 Profil Utilisateur")
+    """Tab 4: User profile"""
+    st.header("🟠 User Profile")
     
     with st.form("user_profile_form"):
-        st.subheader("📝 Informations Personnelles")
+        st.subheader("📝 Personal Information")
         
         col1, col2 = st.columns(2)
         
         with col1:
-            age = st.selectbox("Âge", ["<18", "18-30", "31-50", "51-65", "65+"])
-            conditions = st.multiselect("Problèmes de santé", 
-                                      ["Asthme", "Allergies", "Problèmes cardiaques", "Aucun"])
+            age = st.selectbox("Age", ["<18", "18-30", "31-50", "51-65", "65+"])
+            conditions = st.multiselect("Health conditions", 
+                                      ["Asthma", "Allergies", "Heart problems", "None"])
         
         with col2:
             profession = st.selectbox("Profession", 
-                                    ["Bureau", "Extérieur", "Étudiant", "Retraité", "Autre"])
-            activites = st.multiselect("Activités régulières",
-                                     ["Sport intensif", "Marche", "Vélo", "Jardinage", "Aucune"])
+                                    ["Office", "Outdoor", "Student", "Retired", "Other"])
+            activities = st.multiselect("Regular activities",
+                                     ["Intense sports", "Walking", "Cycling", "Gardening", "None"])
         
-        # Soumission du formulaire
-        submitted = st.form_submit_button("💾 Sauvegarder le profil")
+        # Form submission
+        submitted = st.form_submit_button("💾 Save profile")
         
         if submitted:
             st.session_state['user_profile_details'] = {
                 'age': age,
                 'conditions': conditions,
                 'profession': profession,
-                'activites': activites
+                'activities': activities
             }
-            st.success("✅ Profil sauvegardé avec succès!")
+            st.success("✅ Profile saved successfully!")
     
-    # Affichage du résumé de risque
+    # Risk summary display
     if 'user_profile_details' in st.session_state:
-        st.subheader("📊 Résumé de Votre Risque Personnel")
+        st.subheader("📊 Your Personal Risk Summary")
         
         profile = st.session_state['user_profile_details']
         risk_factors = 0
         
-        # Calcul des facteurs de risque
+        # Risk factor calculation
         if profile['age'] in ['<18', '65+']:
             risk_factors += 1
-        if any(cond in profile['conditions'] for cond in ['Asthme', 'Problèmes cardiaques']):
+        if any(cond in profile['conditions'] for cond in ['Asthma', 'Heart problems']):
             risk_factors += 2
-        if profile['profession'] == 'Extérieur':
+        if profile['profession'] == 'Outdoor':
             risk_factors += 1
-        if 'Sport intensif' in profile['activites']:
+        if 'Intense sports' in profile['activities']:
             risk_factors += 1
         
-        # Détermination du niveau de risque
+        # Risk level determination
         if risk_factors >= 3:
-            risk_level = "Élevé"
+            risk_level = "High"
             color = "red"
-            advice = "Surveillez attentivement la qualité de l'air. Évitez les activités extérieures lorsque l'AQI est médiocre ou pire."
+            advice = "Monitor air quality closely. Avoid outdoor activities when AQI is poor or worse."
         elif risk_factors >= 2:
-            risk_level = "Modéré"
+            risk_level = "Moderate"
             color = "orange"
-            advice = "Soyez prudent lors des jours de pollution. Réduisez les activités intenses à l'extérieur."
+            advice = "Be cautious on polluted days. Reduce intense outdoor activities."
         else:
-            risk_level = "Faible"
+            risk_level = "Low"
             color = "green"
-            advice = "Vous êtes peu sensible à la pollution. Continuez à profiter de vos activités normales."
+            advice = "You are less sensitive to pollution. Continue to enjoy your normal activities."
         
-        st.markdown(f"<h3 style='color:{color}'>Niveau de risque: {risk_level}</h3>", unsafe_allow_html=True)
-        st.info(f"💡 **Conseil personnalisé**: {advice}")
+        st.markdown(f"<h3 style='color:{color}'>Risk level: {risk_level}</h3>", unsafe_allow_html=True)
+        st.info(f"💡 **Personalized advice**: {advice}")
         
-        # Suggestions d'activités basées sur l'AQI actuel
-        st.subheader("🎯 Suggestions d'Activités")
+        # Activity suggestions based on current AQI
+        st.subheader("🎯 Activity Suggestions")
         
-        # Simulation de l'AQI actuel (en pratique, utiliser les données réelles)
-        current_aqi = 25  # Valeur simulée
+        # Current AQI simulation (in practice, use real data)
+        current_aqi = 25  # Simulated value
         
         if current_aqi <= 35:
-            st.success("**✅ Conditions excellentes** - Idéal pour toutes les activités extérieures")
-            st.write("• Sport intensif en extérieur")
-            st.write("• Randonnée et vélo")
-            st.write("• Pique-nique en plein air")
+            st.success("**✅ Excellent conditions** - Ideal for all outdoor activities")
+            st.write("• Intense outdoor sports")
+            st.write("• Hiking and cycling")
+            st.write("• Outdoor picnics")
         elif current_aqi <= 55:
-            st.warning("**⚠️ Conditions modérées** - Adaptez vos activités")
-            st.write("• Sport modéré acceptable")
-            st.write("• Évitez les efforts prolongés")
-            st.write("• Personnes sensibles: limitez le temps dehors")
+            st.warning("**⚠️ Moderate conditions** - Adapt your activities")
+            st.write("• Moderate sports acceptable")
+            st.write("• Avoid prolonged efforts")
+            st.write("• Sensitive people: limit time outdoors")
         else:
-            st.error("**🚨 Conditions dégradées** - Privilégiez l'intérieur")
-            st.write("• Reportez les activités sportives")
-            st.write("• Limitez les déplacements non essentiels")
-            st.write("• Utilisez un purificateur d'air à l'intérieur")
+            st.error("**🚨 Poor conditions** - Prefer indoor activities")
+            st.write("• Postpone sports activities")
+            st.write("• Limit non-essential travel")
+            st.write("• Use air purifier indoors")
 
 def tab_analyse_zone(all_zone_data):
-    """Onglet 5: Analyse par zone détaillée"""
-    st.header("⚫ Analyse par Zone")
+    """Tab 5: Detailed zone analysis"""
+    st.header("⚫ Zone Analysis")
     
-    # Sélecteur de zone
-    zone_analyze = st.selectbox("Sélectionnez une zone", [d['zone'] for d in all_zone_data])
+    # Zone selector
+    zone_analyze = st.selectbox("Select a zone", [d['zone'] for d in all_zone_data])
     selected_zone_data = next(d for d in all_zone_data if d['zone'] == zone_analyze)
     
-    # Métriques de la zone
+    # Zone metrics
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric("AQI Actuel", f"{selected_zone_data['pm25']:.1f} µg/m³")
+        st.metric("Current AQI", f"{selected_zone_data['pm25']:.1f} µg/m³")
     with col2:
-        # Calcul AQI min/max (simulation)
+        # Min/max AQI calculation (simulation)
         aqi_min = max(5, selected_zone_data['pm25'] * 0.7)
         aqi_max = min(150, selected_zone_data['pm25'] * 1.3)
-        st.metric("AQI Min (24h)", f"{aqi_min:.1f} µg/m³")
+        st.metric("Min AQI (24h)", f"{aqi_min:.1f} µg/m³")
     with col3:
-        st.metric("AQI Max (24h)", f"{aqi_max:.1f} µg/m³")
+        st.metric("Max AQI (24h)", f"{aqi_max:.1f} µg/m³")
     with col4:
-        st.metric("AQI Moyen", f"{(aqi_min + aqi_max) / 2:.1f} µg/m³")
+        st.metric("Average AQI", f"{(aqi_min + aqi_max) / 2:.1f} µg/m³")
     
-    # Graphiques détaillés
+    # Detailed charts
     col1, col2 = st.columns(2)
     
     with col1:
-        # Distribution horaire (simulation)
-        heures = list(range(24))
-        aqi_horaire = [selected_zone_data['pm25'] * (1 + 0.3 * np.sin(h/24 * 2 * np.pi)) for h in heures]
+        # Hourly distribution (simulation)
+        hours = list(range(24))
+        aqi_hourly = [selected_zone_data['pm25'] * (1 + 0.3 * np.sin(h/24 * 2 * np.pi)) for h in hours]
         
-        fig_horaire = px.line(x=heures, y=aqi_horaire,
-                            title=f"Profil Horaire Typique - {zone_analyze}",
-                            labels={'x': 'Heure de la journée', 'y': 'AQI (µg/m³)'})
-        st.plotly_chart(fig_horaire, use_container_width=True)
+        fig_hourly = px.line(x=hours, y=aqi_hourly,
+                            title=f"Typical Hourly Profile - {zone_analyze}",
+                            labels={'x': 'Time of day', 'y': 'AQI (µg/m³)'})
+        st.plotly_chart(fig_hourly, use_container_width=True)
     
     with col2:
-        # Comparaison avec autres zones
-        zones_comparaison = st.multiselect("Zones à comparer",
+        # Comparison with other zones
+        comparison_zones = st.multiselect("Zones to compare",
                                          [d['zone'] for d in all_zone_data if d['zone'] != zone_analyze],
                                          default=[d['zone'] for d in all_zone_data if d['zone'] != zone_analyze][:2])
         
-        if zones_comparaison:
-            data_comparaison = [selected_zone_data]
+        if comparison_zones:
+            comparison_data = [selected_zone_data]
             for zone in all_zone_data:
-                if zone['zone'] in zones_comparaison:
-                    data_comparaison.append(zone)
+                if zone['zone'] in comparison_zones:
+                    comparison_data.append(zone)
             
-            fig_comparaison = px.bar(
-                x=[d['zone'] for d in data_comparaison],
-                y=[d['pm25'] for d in data_comparaison],
-                title="Comparaison AQI entre Zones",
+            fig_comparison = px.bar(
+                x=[d['zone'] for d in comparison_data],
+                y=[d['pm25'] for d in comparison_data],
+                title="AQI Comparison Between Zones",
                 labels={'x': 'Zone', 'y': 'AQI (µg/m³)'}
             )
-            st.plotly_chart(fig_comparaison, use_container_width=True)
+            st.plotly_chart(fig_comparison, use_container_width=True)
     
-    # Tendances détaillées
-    st.subheader("📈 Tendances Détaillées")
+    # Detailed trends
+    st.subheader("📈 Detailed Trends")
     
-    # Simulation de données de tendance
-    jours = 30
-    dates_tendance = [datetime.now() - timedelta(days=x) for x in range(jours, 0, -1)]
-    tendance_data = []
+    # Trend data simulation
+    days = 30
+    trend_dates = [datetime.now() - timedelta(days=x) for x in range(days, 0, -1)]
+    trend_data = []
     
-    for date in dates_tendance:
+    for date in trend_dates:
         variation = random.uniform(0.8, 1.2)
-        aqi_jour = selected_zone_data['pm25'] * variation
-        tendance_data.append({'Date': date, 'AQI': aqi_jour})
+        aqi_day = selected_zone_data['pm25'] * variation
+        trend_data.append({'Date': date, 'AQI': aqi_day})
     
-    df_tendance = pd.DataFrame(tendance_data)
+    df_trend = pd.DataFrame(trend_data)
     
-    fig_tendance = px.line(df_tendance, x='Date', y='AQI',
-                          title=f"Tendance AQI - {zone_analyze} (30 jours)",
-                          labels={'AQI': 'Concentration PM2.5 (µg/m³)'})
+    fig_trend = px.line(df_trend, x='Date', y='AQI',
+                      title=f"AQI Trend - {zone_analyze} (30 days)",
+                      labels={'AQI': 'PM2.5 Concentration (µg/m³)'})
     
-    # Ajout de la ligne de tendance
-    z = np.polyfit(range(len(df_tendance)), df_tendance['AQI'], 1)
+    # Trend line addition
+    z = np.polyfit(range(len(df_trend)), df_trend['AQI'], 1)
     p = np.poly1d(z)
-    fig_tendance.add_scatter(x=df_tendance['Date'], y=p(range(len(df_tendance))),
-                           mode='lines', name='Tendance', line=dict(dash='dash'))
+    fig_trend.add_scatter(x=df_trend['Date'], y=p(range(len(df_trend))),
+                       mode='lines', name='Trend', line=dict(dash='dash'))
     
-    st.plotly_chart(fig_tendance, use_container_width=True)
+    st.plotly_chart(fig_trend, use_container_width=True)
 
 def tab_facteurs_pollution(all_zone_data):
-    """Onglet 6: Facteurs de pollution"""
-    st.header("⚪ Facteurs de Pollution")
+    """Tab 6: Pollution factors"""
+    st.header("⚪ Pollution Factors")
     
-    selected_zone = st.selectbox("Zone d'analyse", [d['zone'] for d in all_zone_data])
+    selected_zone = st.selectbox("Analysis zone", [d['zone'] for d in all_zone_data])
     selected_data = next(d for d in all_zone_data if d['zone'] == selected_zone)
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader("📊 Sources de Pollution")
+        st.subheader("📊 Pollution Sources")
         
-        # Simulation des sources de pollution
+        # Pollution sources simulation
         sources = {
-            'Trafic': random.uniform(20, 40),
-            'Industrie': random.uniform(10, 25),
-            'Chauffage': random.uniform(5, 15),
+            'Traffic': random.uniform(20, 40),
+            'Industry': random.uniform(10, 25),
+            'Heating': random.uniform(5, 15),
             'Agriculture': random.uniform(8, 18),
-            'Naturel': random.uniform(5, 12),
-            'Autres': random.uniform(10, 20)
+            'Natural': random.uniform(5, 12),
+            'Other': random.uniform(10, 20)
         }
         
-        # Normalisation à 100%
+        # Normalization to 100%
         total = sum(sources.values())
         sources = {k: (v/total)*100 for k, v in sources.items()}
         
         fig_sources = px.pie(values=list(sources.values()), names=list(sources.keys()),
-                           title="Contribution des Sources de Pollution")
+                           title="Pollution Source Contribution")
         st.plotly_chart(fig_sources, use_container_width=True)
     
     with col2:
-        st.subheader("🌡️ Corrélations Météo")
+        st.subheader("🌡️ Weather Correlations")
         
-        # Simulation de données de corrélation
+        # Correlation data simulation
         temperature = np.random.normal(20, 5, 100)
-        humidite = np.random.normal(60, 15, 100)
-        aqi_simule = selected_data['pm25'] + temperature * 0.5 - humidite * 0.3 + np.random.normal(0, 5, 100)
+        humidity = np.random.normal(60, 15, 100)
+        aqi_simulated = selected_data['pm25'] + temperature * 0.5 - humidity * 0.3 + np.random.normal(0, 5, 100)
         
-        fig_corr_temp = px.scatter(x=temperature, y=aqi_simule,
-                                 title="Corrélation AQI vs Température",
-                                 labels={'x': 'Température (°C)', 'y': 'AQI (µg/m³)'})
+        fig_corr_temp = px.scatter(x=temperature, y=aqi_simulated,
+                                 title="AQI vs Temperature Correlation",
+                                 labels={'x': 'Temperature (°C)', 'y': 'AQI (µg/m³)'})
         fig_corr_temp.update_layout(showlegend=False)
         st.plotly_chart(fig_corr_temp, use_container_width=True)
         
-        fig_corr_hum = px.scatter(x=humidite, y=aqi_simule,
-                                title="Corrélation AQI vs Humidité",
-                                labels={'x': 'Humidité (%)', 'y': 'AQI (µg/m³)'})
+        fig_corr_hum = px.scatter(x=humidity, y=aqi_simulated,
+                                title="AQI vs Humidity Correlation",
+                                labels={'x': 'Humidity (%)', 'y': 'AQI (µg/m³)'})
         fig_corr_hum.update_layout(showlegend=False)
         st.plotly_chart(fig_corr_hum, use_container_width=True)
     
-    # Conseils pour réduire l'impact
-    st.subheader("💡 Réduire Votre Impact")
+    # Tips to reduce impact
+    st.subheader("💡 Reduce Your Impact")
     
-    conseils = [
-        "🚗 Utilisez les transports en commun ou le covoiturage",
-        "🚲 Privilégiez le vélo pour les courts trajets",
-        "💡 Éteignez les lumières et appareils inutilisés",
-        "🌱 Réduisez votre consommation de viande",
-        "🛒 Achetez local et de saison",
-        "♻️ Recycler et composter vos déchets",
-        "🏠 Améliorez l'isolation de votre logement",
-        "🌳 Plantez des arbres et végétaux"
+    tips = [
+        "🚗 Use public transport or carpooling",
+        "🚲 Prefer cycling for short trips",
+        "💡 Turn off lights and unused appliances",
+        "🌱 Reduce meat consumption",
+        "🛒 Buy local and seasonal products",
+        "♻️ Recycle and compost your waste",
+        "🏠 Improve home insulation",
+        "🌳 Plant trees and vegetation"
     ]
     
-    for conseil in conseils:
-        st.write(f"• {conseil}")
+    for tip in tips:
+        st.write(f"• {tip}")
 
 def tab_rapports_export(all_zone_data):
-    """Onglet 7: Rapports et export"""
-    st.header("🟩 Rapports & Export")
+    """Tab 7: Reports and export"""
+    st.header("🟩 Reports & Export")
     
-    # Génération de rapport automatique
-    st.subheader("📄 Rapport Automatique")
+    # Automatic report generation
+    st.subheader("📄 Automatic Report")
     
-    # Calcul des statistiques globales
+    # Global statistics calculation
     aqi_values = [zone['pm25'] for zone in all_zone_data]
-    aqi_moyen = np.mean(aqi_values)
-    aqi_max = max(aqi_values)
-    zone_max = all_zone_data[np.argmax(aqi_values)]['zone']
-    status_global, _, _ = get_aqi_status_and_color(aqi_moyen)
+    avg_aqi = np.mean(aqi_values)
+    max_aqi = max(aqi_values)
+    max_zone = all_zone_data[np.argmax(aqi_values)]['zone']
+    global_status, _, _ = get_aqi_status_and_color(avg_aqi)
     
-    # Rapport texte
-    rapport = f"""
-    ## 📊 Rapport Qualité de l'Air - {datetime.now().strftime('%d/%m/%Y')}
+    # Text report
+    report = f"""
+    ## 📊 Air Quality Report - {datetime.now().strftime('%m/%d/%Y')}
     
-    ### Résumé Exécutif
-    - **Qualité globale**: {status_global}
-    - **AQI moyen**: {aqi_moyen:.1f} µg/m³
-    - **Zone la plus affectée**: {zone_max} ({aqi_max:.1f} µg/m³)
-    - **Nombre de zones surveillées**: {len(all_zone_data)}
+    ### Executive Summary
+    - **Overall quality**: {global_status}
+    - **Average AQI**: {avg_aqi:.1f} µg/m³
+    - **Most affected zone**: {max_zone} ({max_aqi:.1f} µg/m³)
+    - **Number of monitored zones**: {len(all_zone_data)}
     
-    ### Détails par Zone
+    ### Zone Details
     """
     
     for zone in all_zone_data:
         status, _, icon = get_aqi_status_and_color(zone['pm25'])
-        rapport += f"- **{zone['zone']}**: {zone['pm25']:.1f} µg/m³ {icon} ({status})\n"
+        report += f"- **{zone['zone']}**: {zone['pm25']:.1f} µg/m³ {icon} ({status})\n"
     
-    rapport += """
-    ### Recommandations
-    - Surveillez les zones à risque élevé
-    - Adaptez vos activités selon la qualité de l'air
-    - Consultez les prévisions pour planifier vos sorties
+    report += """
+    ### Recommendations
+    - Monitor high-risk zones
+    - Adapt activities according to air quality
+    - Check forecasts to plan your outings
     """
     
-    st.markdown(rapport)
+    st.markdown(report)
     
-    # Options d'export
-    st.subheader("📤 Export des Données")
+    # Export options
+    st.subheader("📤 Data Export")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        # Export CSV
+        # CSV export
         df_export = pd.DataFrame([{
             'Zone': zone['zone'],
             'AQI': zone['pm25'],
-            'Statut': get_aqi_status_and_color(zone['pm25'])[0],
+            'Status': get_aqi_status_and_color(zone['pm25'])[0],
             'Latitude': zone['lat'],
             'Longitude': zone['lon'],
-            'Source': zone.get('source', 'Simulé'),
+            'Source': zone.get('source', 'Simulated'),
             'Date': datetime.now()
         } for zone in all_zone_data])
         
         csv = df_export.to_csv(index=False)
         st.download_button(
-            label="📥 Télécharger CSV",
+            label="📥 Download CSV",
             data=csv,
-            file_name=f"rapport_aqi_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+            file_name=f"aqi_report_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
             mime="text/csv"
         )
     
     with col2:
-        # Export PDF simulé
-        if st.button("📄 Générer PDF"):
-            st.info("Fonctionnalité PDF en cours de développement...")
-            st.success("✅ Rapport PDF généré avec succès! (simulation)")
+        # Simulated PDF export
+        if st.button("📄 Generate PDF"):
+            st.info("PDF functionality under development...")
+            st.success("✅ PDF report generated successfully! (simulation)")
     
-    # Graphiques pour le rapport
-    st.subheader("📈 Visualisations du Rapport")
+    # Report visualizations
+    st.subheader("📈 Report Visualizations")
     
-    # Graphique comparatif
-    fig_rapport = px.bar(
+    # Comparative chart
+    fig_report = px.bar(
         x=[zone['zone'] for zone in all_zone_data],
         y=[zone['pm25'] for zone in all_zone_data],
-        title="Comparaison AQI entre Toutes les Zones",
+        title="AQI Comparison Between All Zones",
         labels={'x': 'Zone', 'y': 'AQI (µg/m³)'},
         color=[get_aqi_status_and_color(zone['pm25'])[1] for zone in all_zone_data]
     )
-    st.plotly_chart(fig_rapport, use_container_width=True)
+    st.plotly_chart(fig_report, use_container_width=True)
 
 # -----------------------------------------------------------------------------
-# 7. NAVIGATION ET ÉTAT DE SESSION
+# 7. NAVIGATION AND SESSION STATE
 # -----------------------------------------------------------------------------
 
 def create_navigation():
-    """Crée une navigation latérale avancée avec choix de la date/heure et profil utilisateur."""
+    """Creates advanced sidebar navigation with date/time selection and user profile."""
     if 'user_profile' not in st.session_state:
         st.session_state['user_profile'] = {'risk': 'medium', 'activities': ['outdoor_sport', 'walk']}
     if 'analysis_datetime' not in st.session_state:
@@ -918,22 +918,22 @@ def create_navigation():
         st.session_state['selected_zone'] = LA_ZONES["Downtown"]
     
     with st.sidebar:
-        st.title("🎛️ Paramètres d'Analyse")
+        st.title("🎛️ Analysis Settings")
         
-        # Sélection temporelle
-        st.subheader("⏱️ Période d'Analyse")
+        # Time selection
+        st.subheader("⏱️ Analysis Period")
         
         current_dt = datetime.now()
         analysis_dt = st.session_state['analysis_datetime']
 
         selected_date = st.date_input(
-            "Date d'analyse",
+            "Analysis date",
             value=analysis_dt.date(),
             min_value=current_dt.date() - timedelta(days=7),
             max_value=current_dt.date() + timedelta(days=3)
         )
         
-        selected_time = st.time_input("Heure d'analyse", value=analysis_dt.time())
+        selected_time = st.time_input("Analysis time", value=analysis_dt.time())
         
         new_analysis_dt = datetime.combine(selected_date, selected_time)
         if new_analysis_dt != st.session_state['analysis_datetime']:
@@ -942,55 +942,55 @@ def create_navigation():
 
         st.markdown("---")
         
-        # Profil utilisateur
-        st.subheader("👤 Votre Profil de Risque")
+        # User profile
+        st.subheader("👤 Your Risk Profile")
         
         risk_level = st.selectbox(
-            "Niveau de Sensibilité à la Pollution",
+            "Pollution Sensitivity Level",
             options=['low', 'medium', 'high', 'critical'],
             format_func=lambda x: get_risk_description(x)[0],
             index=['low', 'medium', 'high', 'critical'].index(st.session_state['user_profile']['risk'])
         )
         
         activities = st.multiselect(
-            "Activités de Plein Air Prévues",
+            "Planned Outdoor Activities",
             options=['outdoor_sport', 'walk', 'bike', 'garden'],
             default=st.session_state['user_profile']['activities'],
-            format_func=lambda x: {"outdoor_sport": "Sport Intensif", "walk": "Marche/Promenade", "bike": "Vélo", "garden": "Jardinage/Loisirs"}.get(x, x)
+            format_func=lambda x: {"outdoor_sport": "Intense Sports", "walk": "Walking", "bike": "Cycling", "garden": "Gardening/Leisure"}.get(x, x)
         )
         
         st.session_state['user_profile'] = {'risk': risk_level, 'activities': activities}
         
-        st.markdown(f"**Conseil**: *{get_risk_description(risk_level)[1]}*")
+        st.markdown(f"**Advice**: *{get_risk_description(risk_level)[1]}*")
 
 # -----------------------------------------------------------------------------
-# 8. APPLICATION PRINCIPALE AVEC ONGLETS
+# 8. MAIN APPLICATION WITH TABS
 # -----------------------------------------------------------------------------
 
 def main_application():
-    """Contrôleur principal de l'application Streamlit avec onglets."""
+    """Main Streamlit application controller with tabs."""
     
-    # Initialisation des classes
+    # Class initialization
     fetcher = DataFetcher()
     predictor = AdvancedAQIPredictor()
     
-    st.title("Guardian AI 🌍 Prévisions Avancées de la Qualité de l'Air (AQI)")
+    st.title("Guardian AI 🌍 Advanced Air Quality (AQI) Forecasts")
     
-    # Obtenir le temps de référence
+    # Get reference time
     analysis_dt = st.session_state.get('analysis_datetime', datetime.now())
     is_historic = analysis_dt < datetime.now() - timedelta(minutes=60)
     
     if is_historic:
-        st.header(f"Mode Historique : Données pour le **{analysis_dt.strftime('%d/%m/%Y à %H:%M')}**")
+        st.header(f"Historical Mode: Data for **{analysis_dt.strftime('%m/%d/%Y at %H:%M')}**")
     elif analysis_dt > datetime.now() + timedelta(minutes=10):
-        st.header(f"Mode Prévision : Données pour le **{analysis_dt.strftime('%d/%m/%Y à %H:%M')}**")
+        st.header(f"Forecast Mode: Data for **{analysis_dt.strftime('%m/%d/%Y at %H:%M')}**")
     else:
-        st.header(f"Mode Actuel : Données pour le **{analysis_dt.strftime('%d/%m/%Y à %H:%M')}**")
+        st.header(f"Current Mode: Data for **{analysis_dt.strftime('%m/%d/%Y at %H:%M')}**")
     
     st.markdown("---")
     
-    # Récupération des données
-    with st.spinner('🛰️ Récupération et harmonisation des données satellites et terrestres...'):
+    # Data retrieval
+    with st.spinner('🛰️ Retrieving and harmonizing satellite and ground data...'):
         all_zone_data = []
         df_map_data = []
 
@@ -998,7 +998,7 @@ def main_application():
             
             weather_data = fetcher.fetch_advanced_weather(zone_info['lat'], zone_info['lon'])
             avg_pm25 = None
-            source = "Simulé (Modèle)"
+            source = "Simulated (Model)"
 
             if not is_historic and analysis_dt < datetime.now() + timedelta(minutes=10):
                 zone_data_from_api = fetcher.fetch_multi_source_aqi(zone_info['lat'], zone_info['lon'])
@@ -1007,7 +1007,7 @@ def main_application():
                     pm25_values = [d['pm25'] for d in zone_data_from_api if d.get('pm25') is not None]
                     if pm25_values:
                         avg_pm25 = np.mean(pm25_values) * zone_info['weight']
-                        source = "Réel (OpenAQ)"
+                        source = "Real (OpenAQ)"
 
             if avg_pm25 is None:
                 time_of_day_factor = 1.2 if 7 <= analysis_dt.hour <= 9 or 16 <= analysis_dt.hour <= 19 else 0.8
@@ -1019,12 +1019,12 @@ def main_application():
                 avg_pm25 = max(5, min(150, pm25_simulated))
                 
                 if not is_historic and analysis_dt < datetime.now() + timedelta(minutes=10):
-                    st.sidebar.info(f"⚠️ **{zone_info['name']}**: Aucune donnée réelle. Simulation utilisée.")
+                    st.sidebar.info(f"⚠️ **{zone_info['name']}**: No real data available. Simulation used.")
                 
                 if is_historic:
-                     source = "Historique Simulé"
+                     source = "Simulated Historical"
                 elif analysis_dt > datetime.now():
-                    source = "Prévision Simulé"
+                    source = "Simulated Forecast"
 
             avg_pm25 = float(avg_pm25) if avg_pm25 is not None else 25.0
 
@@ -1051,23 +1051,23 @@ def main_application():
 
     df_map = pd.DataFrame(df_map_data)
     
-    # Mise à jour de la zone sélectionnée
+    # Selected zone update
     zone_names = [d['zone'] for d in all_zone_data]
-    selected_zone_name = st.sidebar.selectbox("Sélectionnez la Zone d'Analyse Détaillée", zone_names)
+    selected_zone_name = st.sidebar.selectbox("Select Detailed Analysis Zone", zone_names)
     st.session_state['selected_zone'] = next(info for name, info in LA_ZONES.items() if info['name'] == selected_zone_name)
     
-    # Création des onglets
+    # Tab creation
     tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
-        "🟢 Tableau de bord", 
-        "🔵 Historique", 
-        "🟣 Prévisions", 
-        "🟠 Profil", 
-        "⚫ Analyse Zone", 
-        "⚪ Facteurs Pollution", 
-        "🟩 Rapports"
+        "🟢 Dashboard", 
+        "🔵 History", 
+        "🟣 Forecasts", 
+        "🟠 Profile", 
+        "⚫ Zone Analysis", 
+        "⚪ Pollution Factors", 
+        "🟩 Reports"
     ])
     
-    # Contenu des onglets
+    # Tab content
     with tab1:
         tab_dashboard(fetcher, predictor, all_zone_data, df_map)
     
@@ -1090,7 +1090,7 @@ def main_application():
         tab_rapports_export(all_zone_data)
 
 # -----------------------------------------------------------------------------
-# 9. POINT D'ENTRÉE
+# 9. ENTRY POINT
 # -----------------------------------------------------------------------------
 
 if __name__ == "__main__":
